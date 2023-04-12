@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="utils/lib.js"></script>
+</head>
+<body onload="main()">
+<canvas id="example" width="400" height="400"></canvas>
+<script>
+    // 顶点着色器
+    const VSHADER_SOURCE = `
+    //attribute 被称为存储限定符
+    //vec4 数据类型
+    //a_Position 变量名
+    attribute vec4 a_Position;
+    attribute float a_PointSize;
+    void main(){
+        gl_Position = a_Position;
+        gl_PointSize = a_PointSize;
+    }
+    `;
+
+    // 片元着色器
+    const FSHADER_SOURCE = `
+    void main(){
+         //设置颜色
+        gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+    }
+    `;
+
+    // 鼠标点击位置数组
+    let g_points = [];
+
+    // 鼠标点击后的数据处理
+    function click(e, webgl, webglDiv, a_Position) {
+        // 鼠标点击处的x坐标
+        let x = e.clientX;
+        // 鼠标点击处的y坐标
+        let y = e.clientY;
+
+        /*
+            getBoundingClientRect()是一个 DOM API 方法，可以返回一个矩形对象，
+            该矩形对象包含了指定元素的边界信息，包括元素的左、上、右、下四个边界值
+            以及元素的宽度和高度等信息。该方法返回的是相对于浏览器视口的位置和尺寸信息。
+         */
+
+        let rect = e.target.getBoundingClientRect();
+        x = ((x - rect.left) - webglDiv.height / 2) / (webglDiv.height / 2);
+        y = (webglDiv.width / 2 - (y - rect.top)) / (webglDiv.width / 2);
+
+        // 将坐标存储到g_points数组中
+        g_points.push(x);
+        g_points.push(y);
+
+        // 清除缓冲区
+        webgl.clear(webgl.COLOR_BUFFER_BIT);
+
+        let len = g_points.length;
+        for (let i = 0; i < len; i += 2) {
+            webgl.vertexAttrib2f(a_Position, g_points[i], g_points[i + 1]);
+            webgl.drawArrays(webgl.POINTS, 0, 1);
+        }
+    }
+
+    function main() {
+        // 获取canvas对象
+        const webglDiv = document.getElementById('example');
+
+        // 获取WebGl上下文
+        let webgl = webglDiv.getContext("webgl");
+
+        // 初始化着色器
+        if (!initShaders(webgl, VSHADER_SOURCE, FSHADER_SOURCE)) {
+            console.log('Failed to initialize shaders');
+            return;
+        }
+
+        // 获取attribute a_Position变量的存储位置
+        let a_Position = webgl.getAttribLocation(webgl.program, 'a_Position');
+        console.log(a_Position);
+        if (a_Position < 0) {
+            console.log('Failed to get the storage location of a_Position');
+            return;
+        }
+
+        //获取attribute a_PointSize变量的存储位置
+        let a_PointSize = webgl.getAttribLocation(webgl.program,'a_PointSize');
+        // 将像素点大小传输给attribute变量
+        webgl.vertexAttrib1f(a_PointSize,10.0);
+
+        // 鼠标点击事件
+        webglDiv.onmousedown = function (e) {
+            click(e,webgl,webglDiv,a_Position);
+        }
+
+        // 设置canvas背景颜色
+        webgl.clearColor(0.0, 0.0, 0.0, 1.0);
+        // 清除buffer
+        webgl.clear(webgl.COLOR_BUFFER_BIT);
+    }
+</script>
+</body>
+</html>
