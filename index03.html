@@ -7,6 +7,8 @@
 </head>
 <body onload="main()">
 <canvas id="example" width="400" height="400"></canvas>
+
+
 <script>
     // 顶点着色器
     const VSHADER_SOURCE = `
@@ -23,17 +25,20 @@
 
     // 片元着色器
     const FSHADER_SOURCE = `
+    precision mediump float;
+    uniform vec4 u_FragColor;
     void main(){
          //设置颜色
-        gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+        gl_FragColor = u_FragColor;
     }
     `;
 
     // 鼠标点击位置数组
     let g_points = [];
+    let g_colors = [];
 
     // 鼠标点击后的数据处理
-    function click(e, webgl, webglDiv, a_Position) {
+    function click(e, webgl, webglDiv, a_Position, u_FragColor) {
         // 鼠标点击处的x坐标
         let x = e.clientX;
         // 鼠标点击处的y坐标
@@ -50,15 +55,33 @@
         y = (webglDiv.width / 2 - (y - rect.top)) / (webglDiv.width / 2);
 
         // 将坐标存储到g_points数组中
-        g_points.push(x);
-        g_points.push(y);
+        g_points.push([x, y]);
 
+        // 根据象限将坐标存储到g_colors数组中
+        if (x >= 0) {
+            if (y >= 0) {
+                g_colors.push([1.00, 0.0, 0.0]);  // Red
+            } else {
+                g_colors.push([0.0, 1.0, 0.0]);  // Green
+            }
+        } else {
+            if (y >= 0) {
+                g_colors.push([1.00, 0.0, 1.0]);  // Red
+            } else {
+                g_colors.push([0.0, 0.0, 1.0]);  // Blue
+            }
+        }
+        console.log(g_colors);
         // 清理颜色缓冲区
         webgl.clear(webgl.COLOR_BUFFER_BIT);
 
         let len = g_points.length;
-        for (let i = 0; i < len; i += 2) {
-            webgl.vertexAttrib2f(a_Position, g_points[i], g_points[i + 1]);
+        for (let i = 0; i < len; i++) {
+            let [r, g, b] = g_colors[i];
+            let [x, y] = g_points[i];
+
+            webgl.vertexAttrib2f(a_Position, x, y);
+            webgl.uniform4f(u_FragColor, r, g, b, 1.0);
             webgl.drawArrays(webgl.POINTS, 0, 1);
         }
     }
@@ -78,24 +101,30 @@
 
         // 获取attribute a_Position变量的存储位置
         let a_Position = webgl.getAttribLocation(webgl.program, 'a_Position');
-        console.log(a_Position);
         if (a_Position < 0) {
             console.log('Failed to get the storage location of a_Position');
             return;
         }
+        // 获取uniform u_FragColor变量的存储位置
+        let u_FragColor = webgl.getUniformLocation(webgl.program, 'u_FragColor');
+        if (!u_FragColor) {
+            console.log('Failed to get the storage location of u_FragColor');
+            return;
+        }
 
         //获取attribute a_PointSize变量的存储位置
-        let a_PointSize = webgl.getAttribLocation(webgl.program,'a_PointSize');
+        let a_PointSize = webgl.getAttribLocation(webgl.program, 'a_PointSize');
         // 将像素点大小传输给attribute变量
-        webgl.vertexAttrib1f(a_PointSize,10.0);
+        webgl.vertexAttrib1f(a_PointSize, 10.0);
+
 
         // 鼠标点击事件
         webglDiv.onmousedown = function (e) {
-            click(e,webgl,webglDiv,a_Position);
+            click(e, webgl, webglDiv, a_Position, u_FragColor);
         }
 
         // 设置canvas背景颜色
-        webgl.clearColor(0.0, 0.0, 0.0, 1.0);
+        webgl.clearColor(1.0, 1.0, 1.0, 1.0);
         // 清理颜色缓冲区
         webgl.clear(webgl.COLOR_BUFFER_BIT);
     }
