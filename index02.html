@@ -43,13 +43,19 @@
 
         // 获取attribute变量的存储位置
         let a_Position = webgl.getAttribLocation(webgl.program, 'a_Position');
+        console.log(a_Position);
         if (a_Position < 0) {
             console.log('Failed to get the storage location of a_Position');
             return;
         }
 
-        // 将顶点位置传输给attribute变量
+        // 将顶点位置传输给attribute变量 第四个值这里默认为1.0
+        //vertexAttrib 基础函数名 3表示矢量中元素个数 i表示整数 f表示浮点数
         webgl.vertexAttrib3f(a_Position, 0.0, 0.0, 0.0);
+
+        // 将顶点位置传输给attribute变量 不过这里使用的是数组的方式
+        // let position = new Float32Array([0.0, 0.0, 0.0, 1.0]);
+        // webgl.vertexAttrib4fv(a_Position, position);
 
         // 设置canvas背景颜色
         webgl.clearColor(0.0, 0.0, 0.0, 1.0);
