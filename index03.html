@@ -53,7 +53,7 @@
         g_points.push(x);
         g_points.push(y);
 
-        // 清除缓冲区
+        // 清理颜色缓冲区
         webgl.clear(webgl.COLOR_BUFFER_BIT);
 
         let len = g_points.length;
@@ -96,7 +96,7 @@
 
         // 设置canvas背景颜色
         webgl.clearColor(0.0, 0.0, 0.0, 1.0);
-        // 清除buffer
+        // 清理颜色缓冲区
         webgl.clear(webgl.COLOR_BUFFER_BIT);
     }
 </script>
