@@ -14,9 +14,10 @@
     //vec4 数据类型
     //a_Position 变量名
     attribute vec4 a_Position;
+    attribute float a_PointSize;
     void main(){
         gl_Position = a_Position;
-        gl_PointSize = 10.0;
+        gl_PointSize = a_PointSize;
     }
     `;
 
@@ -56,6 +57,12 @@
         // 将顶点位置传输给attribute变量 不过这里使用的是数组的方式
         // let position = new Float32Array([0.0, 0.0, 0.0, 1.0]);
         // webgl.vertexAttrib4fv(a_Position, position);
+
+        //获取attribute变量的存储位置
+        let a_PointSize = webgl.getAttribLocation(webgl.program,'a_PointSize');
+        // 将像素点大小传输给attribute变量
+        webgl.vertexAttrib1f(a_PointSize,50.0);
+
 
         // 设置canvas背景颜色
         webgl.clearColor(0.0, 0.0, 0.0, 1.0);
