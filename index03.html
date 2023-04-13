@@ -6,8 +6,7 @@
     <script src="utils/lib.js"></script>
 </head>
 <body onload="main()">
-<canvas id="example" width="400" height="400"></canvas>
-
+<canvas id="example" width="800" height="800"></canvas>
 
 <script>
     // 顶点着色器
@@ -25,6 +24,8 @@
 
     // 片元着色器
     const FSHADER_SOURCE = `
+    //precision 限定符用于指定浮点数的精度
+    //mediump 表示使用中等精度来表示浮点数
     precision mediump float;
     uniform vec4 u_FragColor;
     void main(){
@@ -71,7 +72,6 @@
                 g_colors.push([0.0, 0.0, 1.0]);  // Blue
             }
         }
-        console.log(g_colors);
         // 清理颜色缓冲区
         webgl.clear(webgl.COLOR_BUFFER_BIT);
 
@@ -91,7 +91,7 @@
         const webglDiv = document.getElementById('example');
 
         // 获取WebGl上下文
-        let webgl = webglDiv.getContext("webgl");
+        let webgl = webglDiv.getContext("webgl2");
 
         // 初始化着色器
         if (!initShaders(webgl, VSHADER_SOURCE, FSHADER_SOURCE)) {
@@ -117,17 +117,18 @@
         // 将像素点大小传输给attribute变量
         webgl.vertexAttrib1f(a_PointSize, 10.0);
 
-
         // 鼠标点击事件
         webglDiv.onmousedown = function (e) {
             click(e, webgl, webglDiv, a_Position, u_FragColor);
         }
 
         // 设置canvas背景颜色
-        webgl.clearColor(1.0, 1.0, 1.0, 1.0);
+        webgl.clearColor(0.0, 0.0, 0.0, 1.0);
         // 清理颜色缓冲区
         webgl.clear(webgl.COLOR_BUFFER_BIT);
     }
+
+
 </script>
 </body>
 </html>
