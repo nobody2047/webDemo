@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="utils/lib.js"></script>
+</head>
+<body>
+<canvas id="example" width="800" height="800"></canvas>
+<script>
+    // 顶点着色器
+    const VSHADER_SOURCE = `
+    //attribute 被称为存储限定符
+    //vec4 数据类型
+    //a_Position 变量名
+    attribute vec4 a_Position;
+    attribute float a_PointSize;
+    void main(){
+        gl_Position = a_Position;
+        gl_PointSize = a_PointSize;
+    }
+    `;
+
+    // 片元着色器
+    const FSHADER_SOURCE = `
+    //precision 限定符用于指定浮点数的精度
+    //mediump 表示使用中等精度来表示浮点数
+    precision mediump float;
+    uniform vec4 u_FragColor;
+    void main(){
+         //设置颜色
+        gl_FragColor = u_FragColor;
+    }
+    `;
+    main()
+
+    function main() {
+        // 获取canvas对象
+        const webglDiv = document.getElementById('example');
+
+        // 获取WebGl上下文
+        let webgl = webglDiv.getContext("webgl");
+
+        // 初始化着色器
+        if (!initShaders(webgl, VSHADER_SOURCE, FSHADER_SOURCE)) {
+            console.log('Failed to initialize shaders');
+            return;
+        }
+
+        // 将顶点的位置写入顶点着色器
+        let n = initVertexBuffers(webgl);
+        if (n < 0) {
+            console.log('Failed to set the positions of the vertices');
+            return;
+        }
+
+        // 设置canvas背景颜色
+        webgl.clearColor(184/255.0, 229/255.0, 248/255.0, 1.0);
+        // 清理颜色缓冲区
+        webgl.clear(webgl.COLOR_BUFFER_BIT);
+
+        webgl.drawArrays(webgl.POINTS, 0, n);
+
+    }
+
+    function initVertexBuffers(gl) {
+        // 三个点坐标
+        let vertices = new Float32Array([0.0, 0.5, -0.5, -0.5, 0.5, -0.5]);
+
+        // 点位个数
+        let n = 3;
+
+        // 1、创建缓冲区对象
+        let vertexBuffer = gl.createBuffer();
+        if (!vertexBuffer) {
+            console.log("Failed to create the buffer object");
+            return -1;
+        }
+
+        // 2、将缓冲区对象绑定到目标
+        // gl.ARRAY_BUFFER 表示缓冲区对象中包含了顶点的数据
+        // gl.ELEMENT_ARRAY_BUFFER 表示缓冲区对象中包含了顶点的索引值
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+
+        // 3、向缓冲区对象中写入数据 将vertices的数据写入到gl.ARRAY_BUFFER缓冲区对象中
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+        // 获取attribute a_Position变量的存储位置
+        let a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+        if (a_Position < 0) {
+            console.log('Failed to get the storage location of a_Position');
+            return;
+        }
+
+        // 获取uniform u_FragColor变量的存储位置
+        let u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
+        if (!u_FragColor) {
+            console.log('Failed to get the storage location of u_FragColor');
+            return;
+        }
+
+        //获取attribute a_PointSize变量的存储位置
+        let a_PointSize = gl.getAttribLocation(gl.program, 'a_PointSize');
+        // 将像素点大小传输给attribute变量
+        gl.vertexAttrib1f(a_PointSize, 10.0);
+
+        //4、将缓冲区对象分配给一个 attribute 变量
+        // vertexAttribPointer 用于告诉 GPU 如何解释这些缓冲区中的数据。
+        // index：要修改的顶点属性的索引。这对应于在顶点着色器中指定的属性位置。
+        // size：每个顶点属性的组件数。例如，2D 位置属性的大小为 2，而 3D 位置属性的大小为 3。
+        // type：属性数组中每个组件的数据类型。这可以是几个常量之一，例如 gl.FLOAT、gl.INT 或 gl.UNSIGNED_SHORT。
+        // normalized：一个布尔值，指示是否应将整数数据归一化为范围 [-1, 1] 或 [0, 1]。
+        // stride：相邻顶点属性之间的字节偏移量。当多个属性交错存储在单个缓冲区对象中时，会使用此参数。
+        // offset：顶点属性数组中第一个组件的字节偏移量。
+
+        gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
+
+        //5、开启 attribute 变量,使缓冲区对 attribute 变量分配生效
+        gl.enableVertexAttribArray(a_Position);
+
+        gl.uniform4f(u_FragColor, 5/255.0, 109/255.0, 232/255.0, 1.0);
+
+        return n;
+    }
+
+
+</script>
+</body>
+</html>
